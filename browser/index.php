@@ -37,9 +37,7 @@ $response = curl_exec($curl);
 curl_close($curl);
 //print_r($response);
 
-$json_string = json_encode($response, JSON_PRETTY_PRINT);
-
 header("Content-type: application/json; charset=UTF-8");
-print($response);
+echo $response;
 
 ?>
