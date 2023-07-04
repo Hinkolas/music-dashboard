@@ -1,43 +1,59 @@
 <?php
 
-// $payload = [
-//     "term" => "Bohemian+Rhapsody",
-//     "media" => "music",
-//     "limit" => "5"
-// ];
+if( isset($_GET['search']) ) {
+    $search_term = urlencode($_GET['search']);
+} else {
+	echo 'no search';
+    die();	
+}
 
-// $options = [
-//     "http" => [
-//         "method" => "GET",
-//         "header" => "Content-type: application/json; charset=UTF-8",
-//         "content" => $payload
-//     ]
-// ];
+if( isset($_GET['api']) ) {
+	$api = $_GET['api'];
+} else {
+	$api = 'spotify';
+}
 
-// $context = stream_context_create($options);
+switch ($api) {
+    case 'itunes':
+        $url = 'https://itunes.apple.com/search?media=music&country=DE&limit=5&term='.urlencode($_GET['search']);
+		
+        $search_curl = curl_init();
+        curl_setopt($search_curl, CURLOPT_URL, $url);
+        curl_setopt($search_curl, CURLOPT_CUSTOMREQUEST, 'GET' );
+        curl_setopt($search_curl, CURLOPT_RETURNTRANSFER, true);
+		
+		$response = curl_exec($search_curl);
+        curl_close($search_curl);
+		
+        break;
+    case 'spotify':
+        require('getAPIToken.php');
+        $url = 'https://api.spotify.com/v1/search?type=track%2Cartist&market=DE&limit=5&q='.urlencode($_GET['search']);
 
-// $data = file_get_contents("https://itunes.apple.com/search", false, $context);
+        $search_curl = curl_init();
+        curl_setopt($search_curl, CURLOPT_URL, $url);
+        curl_setopt($search_curl, CURLOPT_CUSTOMREQUEST, 'GET' );
+        curl_setopt($search_curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($search_curl, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $spotify_token));
 
-// // ?term=Bohemian+Rhapsody&media=music&limit=5
+        $response = curl_exec($search_curl);
+        curl_close($search_curl);
 
-// var_dump($data);
+        break;
+    default:
+        exit('unknown api');
+}
 
+//$json = json_decode($response, true);
+//var_dump($json);
 
-$url = "https://itunes.apple.com/search?term=Bohemian+Rhapsody&media=music&limit=5";
+// $resultCount = $json['resultCount'];
+// $results = $json['results'];
 
-$curl = curl_init($url);
-curl_setopt($curl, CURLOPT_URL, $url);
-curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-
-//for debug only!
-curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-
-$response = curl_exec($curl);
-curl_close($curl);
-//print_r($response);
-
-header("Content-type: application/json; charset=UTF-8");
-echo $response;
+// echo '<ul>';
+// foreach ($results as $result) {
+//     echo '<li>'.$result['trackCensoredName'].' - '.$result['artistName'].'</li>';
+// }
+// echo '</ul>';
 
 ?>
